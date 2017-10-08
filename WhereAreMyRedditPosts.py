@@ -1,6 +1,7 @@
 import praw
 import datetime 
 import time
+import csv
 
 client_id = ""
 client_secret = ""
@@ -19,16 +20,22 @@ reddit = praw.Reddit(client_id=client_id,
 
 rbitcoin = reddit.subreddit('bitcoin');
 
-while start_date > end_date:
-    temp_date = start_date - time_delay
-    start_timestamp = int(time.mktime(temp_date.timetuple()))
-    end_timestamp = int(time.mktime(start_date.timetuple()))
+with open('reddit-posts.csv', 'w', encoding='utf-8') as reddit_posts_csv:
+    spamwriter = csv.writer(reddit_posts_csv, delimiter=',',
+                            quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    while start_date > end_date:
+        temp_date = start_date - time_delay
+        start_timestamp = int(time.mktime(temp_date.timetuple()))
+        end_timestamp = int(time.mktime(start_date.timetuple()))
 
-    q = "(and timestamp:{}..{})".format(start_timestamp, end_timestamp)
-    relevant_bitcoin_posts = rbitcoin.search(q, syntax='cloudsearch', limit=10)
-    for submission in relevant_bitcoin_posts:
-        created_utc = datetime.datetime.utcfromtimestamp(int(submission.created_utc))
-        print(created_utc, submission.title)
+        print("From ", start_date , "to", temp_date)
 
-    start_date = start_date - time_delay
-    time.sleep(5)
+        q = "(and timestamp:{}..{})".format(start_timestamp, end_timestamp)
+        relevant_bitcoin_posts = rbitcoin.search(q, syntax='cloudsearch', limit=10)
+        for submission in relevant_bitcoin_posts:
+            print(submission.title)
+            spamwriter.writerow([int(submission.created_utc),
+                                 submission.title])
+
+        start_date = start_date - time_delay
+        time.sleep(5)
