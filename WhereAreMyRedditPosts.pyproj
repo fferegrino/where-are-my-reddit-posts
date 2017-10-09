@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>ea650125-2c32-49c6-8ef2-ea75d1fb421f</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>WhereAreMyRedditPosts.py</StartupFile>
+    <StartupFile>ProcessMyRedditPosts.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,6 +21,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ProcessMyRedditPosts.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="WhereAreMyRedditPosts.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
