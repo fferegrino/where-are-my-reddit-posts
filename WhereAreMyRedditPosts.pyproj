@@ -24,7 +24,17 @@
     <Compile Include="ProcessMyRedditPosts.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="RedditObjects\Comment.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="RedditObjects\Submission.py" />
+    <Compile Include="RedditObjects\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="WhereAreMyRedditPosts.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="RedditObjects\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

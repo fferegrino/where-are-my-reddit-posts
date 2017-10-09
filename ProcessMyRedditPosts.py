@@ -1,6 +1,8 @@
 import praw
 import csv
 import json
+from RedditObjects.Submission import Submission
+from RedditObjects.Comment import Comment
 
 client_id = ""
 client_secret = ""
@@ -19,23 +21,6 @@ class MyEncoder(json.JSONEncoder):
     def default(self, obj):
         return obj.__dict__
 
-class Submission:
-    
-    def __init__(self, sub_id, title, url):
-        self.id = sub_id
-        self.title = title
-        self.url = url
-        self.comments = []
-
-class Comment:
-    
-    def __init__(self, id, in_reply_to, ups, body, comment_level):
-        self.id = id
-        self.ups = ups
-        self.body = body
-        self.in_reply_to = in_reply_to
-        self.comment_level = comment_level
-
 def process_submission(submission_id):
     submission = reddit.submission(id=submission_id)
     submission.comments.replace_more(limit=0)
@@ -48,7 +33,8 @@ def process_submission(submission_id):
     while comment_queue:
         comment = comment_queue.pop()
         tab = tab_queue.pop()
-        com = Comment(comment.id, 
+        com = Comment(
+                      comment.id, 
                       comment.parent_id, 
                       comment.ups,
                       comment.body,
@@ -73,5 +59,5 @@ with open('reddit-posts.csv', 'r', encoding='utf-8') as csvfile:
         i = i + 1
         submissions.append(process_submission(row[0]))
 
-print(json.dumps(submissions, cls=MyEncoder))
+#print(json.dumps(submissions, cls=MyEncoder))
 
