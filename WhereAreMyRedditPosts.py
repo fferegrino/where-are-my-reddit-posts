@@ -6,7 +6,7 @@ import csv
 client_id = ""
 client_secret = ""
 password = ""
-username = ""
+username = "∫"
 
 start_date = datetime.date.today()
 end_date = datetime.date(2017, 10, 6)
