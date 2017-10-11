@@ -9,7 +9,7 @@ password = ""
 username = ""
 
 start_date = datetime.date(2017, 10, 12) # Un dia más de lo deseado
-end_date = datetime.date(2017, 10, 9)
+end_date = datetime.date(2011, 12, 31)
 time_delay = datetime.timedelta(days=1)
 
 reddit = praw.Reddit(client_id=client_id,
