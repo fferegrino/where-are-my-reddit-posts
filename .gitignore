@@ -436,3 +436,4 @@ paket-files/
 
 *-posts.csv
 reddit-posts*.csv
+data/*
