@@ -1,11 +1,14 @@
-import praw
 import csv
-import json
-import unicodedata 
 import datetime
-from RedditObjects.Submission import Submission
-from RedditObjects.Comment import Comment
+import json
+import os
+import unicodedata
+
+import praw
 from newsplease import NewsPlease
+
+from RedditObjects.Comment import Comment
+from RedditObjects.Submission import Submission
 
 client_id = ""
 client_secret = ""
@@ -59,28 +62,28 @@ def process_submission(submission_id):
             tab_queue.append(tab+1)
     return sub
 
-number_of_rows = 1000
+posts_file = '2012-02'
 
-with open('data/reddit-posts-2017-10-12-2011-12-31-fixed.csv', 'r', encoding='utf-8') as csvfile:
-    i = 0
+with open('data/monthly_submissions/'+ posts_file + '-posts.csv', 'r', encoding='utf-8') as csvfile:
     post_reader = csv.reader(csvfile, delimiter=',',
                             quotechar='"', quoting=csv.QUOTE_MINIMAL)
     wrong_posts = []
     next(post_reader)
     for row in post_reader:
-        i = i + 1
-        if i > number_of_rows:
-            break
         try:
             sub = process_submission(row[0])
             article = NewsPlease.from_url(row[4])
             sub.actual_title = unicodedata.normalize("NFKD", article.title)
             sub.news_text = unicodedata.normalize("NFKD", article.text)
             date = datetime.datetime.fromtimestamp(sub.created_utc).strftime('%Y-%m-%d')
-            f = open("data/submissions/"+ date + "-" + row[0] + ".json", 'w')
+            short_date = datetime.datetime.fromtimestamp(sub.created_utc).strftime('%Y-%m')
+            directory = "data/submissions/"+ short_date
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            f = open(directory + "/" + date + "-" + row[0] + ".json", 'w')
             f.write(json.dumps(sub, cls=MyEncoder))
-        except:
+        except :
             print("Something went wrong: ", row[0])
             wrong_posts.append(row[0])
-    fwrong = open("data/wrong.json", 'w')
+    fwrong = open("data/"+ posts_file+"-wrong.json", 'w')
     fwrong.write(json.dumps(wrong_posts))
