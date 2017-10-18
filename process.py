@@ -16,13 +16,14 @@ def main(args=None):
         args = sys.argv[1:]
     # https://www.reddit.com/r/conlangs/comments/5f8rzw/a_serious_emoji_conlang/
     # https://www.reddit.com/r/emojilang/
-    submission_id = "5f8rzw"
+
+    submission_id = "5f8rzw" # <- Emoji intense submission!
 
     processor = SubmissionProcessor(client_id, client_secret, password, username)
 
     sub = processor.process_submission(submission_id, 10)
     with open("data/"+ submission_id + ".json", 'w', encoding='utf-8') as submission_file:
-        submission_file.write(json.dumps(sub, cls=SimpleEncoder))
+        submission_file.write(json.dumps(sub, indent=4, cls=SimpleEncoder))
 
 if __name__ == "__main__":
     main()
