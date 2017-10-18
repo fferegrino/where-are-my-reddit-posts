@@ -3,7 +3,7 @@ import argparse
 import csv
 from datetime import datetime
 
-from crawler import SubCrawler
+from crawler.crawler import SubCrawler
 
 parser = argparse.ArgumentParser(description='Gather some posts from [r]eddit')
 parser.add_argument('subreddit', metavar='sub', type=str,
