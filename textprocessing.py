@@ -1,57 +1,65 @@
 import json
+import csv
 from os import listdir
 from os.path import isfile, join
 
 from processor.simple_encoder import SimpleEncoder
-from taggers.stanford import StanfordTagger
+from analizers.vader import vader_sentiment
 
-java_path = r"\java.exe"
-model = r"\english-caseless-left3words-distsim.tagger"
-jar = r"\stanford-postagger.jar"
+class Row():
+    def __init__(self, type, timestamp, positive, negative, neutral, compound, keyphrases):
+        self.type = type
+        self.timestamp = timestamp
+        self.positive = positive
+        self.negative= negative
+        self.neutral = neutral
+        self.compound = compound
+        self.keyphrases = keyphrases
 
-input_data_folder = ""
+input_data_folder = "data"
 output_data_folder = ""
 json_files_to_analyze = [f for f in listdir(input_data_folder) if
                          isfile(join(input_data_folder, f)) and f.endswith(".json")]
 
+rows = []
 for json_file in json_files_to_analyze:
     print("Processing", json_file)
     with open(join(input_data_folder, json_file)) as data_file:
         data = json.load(data_file)
 
-    pos_tagger = StanfordTagger(jar, model, java_path)
+    news_text = data["news_text"]
 
-    text = pos_tagger.tag("What's the airspeed of an unladen swallow ?")
-    print(text)
+    sentiments = vader_sentiment(data["news_text"])
 
-    # sentiments = sentiment_analysis(data["news_text"][:80000])
-    tags = pos_tagger.tag(data["news_text"][:2000])
+    # Mario stuff goes here (pass news_text to the keyphrase extractor):
+    keyphrases = "actual keywords|separated by|a pipe (vertical bar like this |)"
 
-    processed = {
-        # "identified_as": sentiments["label"],
-        # "sentiments" : sentiments["probability"],
-        "tagged_text": tags["text"],
-        "actual_text": data["news_text"]
-    }
+    news_row = Row(1, data["created_utc"], sentiments["pos"], sentiments["neg"], sentiments["neu"],
+                   sentiments["compound"], keyphrases)
 
-    comments = []
-    max_comment_count = 20
-    ii = 0
+    rows.append(news_row)
     for i, comment in enumerate(data["comments"]):
-        if ii > max_comment_count:
-            break
-        if len(comment["body"]) < 40:
-            continue
+        body = comment["body"]
+        comment_sentiments = vader_sentiment(body)
 
-        ii = ii + 1
-        # comment_sentiments = sentiment_analysis(comment["body"][:80000])
-        # comment_analysis = {
-        #    "identified_as": comment_sentiments["label"],
-        #    "sentiments" : comment_sentiments["probability"],
-        #    "text": comment["body"]
-        # }
-        # comments.append(comment_analysis)
-    processed["comments"] = comments
+        # Mario stuff goes here (pass body to the keyphrase extractor):
+        keyphrases = "actual keyphrases|separated by|a pipe (vertical bar like this |)"
 
-    with open(output_data_folder + json_file, 'w', encoding='utf-8') as submission_file:
-        submission_file.write(json.dumps(processed, indent=4, cls=SimpleEncoder))
+        comment_row = Row(2, comment["created_utc"], comment_sentiments["pos"], comment_sentiments["neg"],
+                          comment_sentiments["neu"], sentiments["compound"], keyphrases)
+
+        rows.append(comment_row)
+
+with open("results.csv", 'w', encoding='utf8', newline='') as results_csv:
+    submwriter = csv.writer(results_csv, delimiter=',',
+                            quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    for row in rows:
+        submwriter.writerow((row.type,
+                             row.timestamp,
+                             row.positive,
+                             row.negative,
+                             row.neutral,
+                             row.compound,
+                             row.keyphrases))
+
+
