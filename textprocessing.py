@@ -32,8 +32,7 @@ for json_file in json_files_to_analyze:
 
     sentiments = vader_sentiment(data["news_text"])
 
-    # Mario stuff goes here (pass news_text to the keyphrase extractor):
-    keyphrases = keyphrases_extractor(data["news_text"])
+    keyphrases = keyphrases_extractor(data["news_text"],3)
 
     news_row = Row(1, data["created_utc"], sentiments["pos"], sentiments["neg"], sentiments["neu"],
                    sentiments["compound"], keyphrases)
@@ -43,8 +42,7 @@ for json_file in json_files_to_analyze:
         body = comment["body"]
         comment_sentiments = vader_sentiment(body)
 
-        # Mario stuff goes here (pass body to the keyphrase extractor):
-        keyphrases = keyphrases_extractor(body)
+        keyphrases = keyphrases_extractor(body,3)
 
         comment_row = Row(2, comment["created_utc"], comment_sentiments["pos"], comment_sentiments["neg"],
                           comment_sentiments["neu"], sentiments["compound"], keyphrases)

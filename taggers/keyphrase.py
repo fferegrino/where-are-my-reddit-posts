@@ -3,6 +3,7 @@ from rake_nltk import Rake
 r = Rake()
 
 
+#Function that receives text and the number of keyphrases
 def keyphrases_extractor(text,number_keyphrases):
     keyphrases = []
     r.extract_keywords_from_text(text) #We give the tool our text
