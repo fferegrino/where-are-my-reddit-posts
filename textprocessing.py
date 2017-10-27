@@ -5,6 +5,7 @@ from os.path import isfile, join
 
 from processor.simple_encoder import SimpleEncoder
 from analizers.vader import vader_sentiment
+from taggers.keyphrase import keyphrases_extractor
 
 class Row():
     def __init__(self, type, timestamp, positive, negative, neutral, compound, keyphrases):
@@ -31,8 +32,7 @@ for json_file in json_files_to_analyze:
 
     sentiments = vader_sentiment(data["news_text"])
 
-    # Mario stuff goes here (pass news_text to the keyphrase extractor):
-    keyphrases = "actual keywords|separated by|a pipe (vertical bar like this |)"
+    keyphrases = keyphrases_extractor(data["news_text"],3)
 
     news_row = Row(1, data["created_utc"], sentiments["pos"], sentiments["neg"], sentiments["neu"],
                    sentiments["compound"], keyphrases)
@@ -42,8 +42,7 @@ for json_file in json_files_to_analyze:
         body = comment["body"]
         comment_sentiments = vader_sentiment(body)
 
-        # Mario stuff goes here (pass body to the keyphrase extractor):
-        keyphrases = "actual keyphrases|separated by|a pipe (vertical bar like this |)"
+        keyphrases = keyphrases_extractor(body,3)
 
         comment_row = Row(2, comment["created_utc"], comment_sentiments["pos"], comment_sentiments["neg"],
                           comment_sentiments["neu"], sentiments["compound"], keyphrases)
