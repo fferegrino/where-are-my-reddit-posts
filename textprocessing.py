@@ -54,7 +54,7 @@ for folder in folders:
             keyphrases = keyphrases_extractor(body,3)
 
             comment_row = Row(2, comment["created_utc"], comment_sentiments["pos"], comment_sentiments["neg"],
-                              comment_sentiments["neu"], sentiments["compound"], keyphrases)
+                              comment_sentiments["neu"], comment_sentiments["compound"], keyphrases)
 
             rows.append(comment_row)
 
