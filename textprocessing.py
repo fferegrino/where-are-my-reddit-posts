@@ -25,13 +25,11 @@ rows = []
 
 for folder in folders:
     current_folder = join(input_data_folder,folder)
-    print(current_folder)
     json_files_to_analyze = [f for f in listdir(current_folder) if
                              isfile(join(current_folder, f)) and f.endswith(".json")]
 
     for json_file in json_files_to_analyze:
-        current_file = join(folder, json_file)
-        print(current_file)
+        current_file = join(current_folder, json_file)
 
         with open(current_file) as data_file:
             data = json.load(data_file)
