@@ -1,81 +1,88 @@
-import requests # http://docs.python-requests.org/en/master/user/quickstart/#make-a-request
 import json
-
-import sys
-
-import os
+import csv
+import numpy as np
 from os import listdir
-import os.path
-from os.path import isfile, join
+from os.path import isfile, join, isdir
+from utils.dates import find_boundaries
 
-from processor.simple_encoder import SimpleEncoder
+from analizers.vader import vader_sentiment
 
-import json
+class Row():
+    def __init__(self, type, timestamp, positive, negative, neutral, compound):
+        self.type = type
+        self.timestamp = timestamp
+        self.positive = positive
+        self.negative= negative
+        self.neutral = neutral
+        self.compound = compound
 
-from nltk.tag import StanfordPOSTagger
-from nltk import word_tokenize
-os.environ['STANFORD_MODELS'] = '/stanford/stanford-ner-2017-06-09/classifiers'
+years = ["2011","2012","2013","2014","2015","2016","2017"]
 
-input_data_folder= ""
-output_data_folder =""
-#json_files_to_analyze = [f for f in listdir(input_data_folder) if isfile(join(input_data_folder, f)) and f.endswith(".json")]
+x = []
+values = np.linspace(-1, 1, 21)
+for a, b in zip(values[:-1], values[1:]):
+    x.append([a, b, (a+b) / 2])
+x = np.array(x)
 
-# Add the jar and model via their path (instead of setting environment variables):
-jar = '/stanford/stanford-ner-2017-06-09/stanford-ner-3.8.0.jar'
-model = 'english.conll.4class.distsim.crf.ser.gz'
 
-pos_tagger = StanfordPOSTagger(model, jar, encoding='utf8')
+def get_categorical_value(value):
+    return value
 
-text = pos_tagger.tag(word_tokenize("What's the airspeed of an unladen swallow ?"))
-print(text)
+for year in years:
+    input_data_folder = r"/Users/fferegrino/Downloads/"+year
+    output_data_folder = "/Users/fferegrino/Downloads/results"
+    folders = [d for d in listdir(input_data_folder) if isdir(join(input_data_folder,d))]
+    rows = []
 
-"""
-for json_file in json_files_to_analyze:
-    print("Processing", json_file)
-    with open(join(input_data_folder, json_file)) as data_file:
-        data = json.load(data_file)
+    for folder in folders:
+        current_folder = join(input_data_folder,folder)
+        json_files_to_analyze = [f for f in listdir(current_folder) if
+                                 isfile(join(current_folder, f)) and f.endswith(".json")]
 
-    # Add the jar and model via their path (instead of setting environment variables):
-    jar = 'your_path/stanford-postagger-full-2016-10-31/stanford-postagger.jar'
-    model = 'your_path/stanford-postagger-full-2016-10-31/models/english-left3words-distsim.tagger'
+        for json_file in json_files_to_analyze:
+            current_file = join(current_folder, json_file)
 
-    pos_tagger = StanfordPOSTagger(model, jar, encoding='utf8')
+            with open(current_file) as data_file:
+                data = json.load(data_file)
 
-    text = pos_tagger.tag(word_tokenize("What's the airspeed of an unladen swallow ?"))
-    print(text)
 
-    
-    #sentiments = sentiment_analysis(data["news_text"][:80000])
-    tags = tagging(data["news_text"][:2000])
+            news_text = data["news_text"]
 
-    processed = {
-        #"identified_as": sentiments["label"],
-        #"sentiments" : sentiments["probability"],
-        "tagged_text" : tags["text"],
-        "actual_text" : data["news_text"]
-    }
+            sentiments = vader_sentiment(data["news_text"])
 
-    comments = []
-    max_comment_count = 20
-    ii = 0
-    for i, comment in enumerate(data["comments"]):
-        if ii > max_comment_count:
-            break
-        if len(comment["body"]) < 40:
-            continue
+            news_row = Row(1, data["created_utc"],
+                           get_categorical_value(sentiments["pos"]),
+                           get_categorical_value(sentiments["neg"]),
+                           get_categorical_value(sentiments["neu"]),
+                           get_categorical_value(sentiments["compound"]))
 
-        ii = ii + 1
-        #comment_sentiments = sentiment_analysis(comment["body"][:80000])
-        #comment_analysis = {
-        #    "identified_as": comment_sentiments["label"],
-        #    "sentiments" : comment_sentiments["probability"],
-        #    "text": comment["body"]
-        #}
-        #comments.append(comment_analysis)
-    processed["comments"] = comments
+            news_date = data["created_utc"]
 
-    with open(output_data_folder + json_file, 'w', encoding='utf-8') as submission_file:
-        submission_file.write(json.dumps(processed, indent=4, cls=SimpleEncoder))
-        
-['/usr/bin/java', '-mx1000m', '-cp', '/Users/fferegrino/Documents/GitHub/where-are-my-reddit-posts/stanford/stanford-ner-2017-06-09/stanford-ner.jar', 'edu.stanford.nlp.tagger.maxent.MaxentTagger', '-model', '/Users/fferegrino/Documents/GitHub/where-are-my-reddit-posts/stanford/stanford-ner-2017-06-09/classifiers/english.conll.4class.distsim.crf.ser.gz', '-textFile', '/var/folders/vh/y10fw2hs3rndgglx4l92vxkm0000gn/T/tmp6fkzzsw2', '-tokenize', 'false', '-outputFormatOptions', 'keepEmptySentences', '-encoding', 'utf8']
-"""
+            lower, upper = find_boundaries(news_date)
+
+            rows.append(news_row)
+            for i, comment in enumerate(data["comments"]):
+                comment_date =  comment["created_utc"]
+                if lower <= comment_date <= upper:
+                    body = comment["body"]
+                    comment_sentiments = vader_sentiment(body)
+
+                    comment_row = Row(2, comment["created_utc"],
+                                      get_categorical_value(comment_sentiments["pos"]),
+                                      get_categorical_value(comment_sentiments["neg"]),
+                                      get_categorical_value(comment_sentiments["neu"]),
+                                      get_categorical_value(comment_sentiments["compound"]))
+
+                    rows.append(comment_row)
+
+    with open("r" + year + ".csv", 'w', encoding='utf8', newline='') as results_csv:
+        submwriter = csv.writer(results_csv, delimiter=',',
+                                quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        for row in rows:
+            submwriter.writerow((row.type,
+                                 row.timestamp,
+                                 row.positive,
+                                 row.negative,
+                                 row.neutral,
+                                 row.compound))
+

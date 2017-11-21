@@ -1,29 +1,51 @@
 import sys
 import json
+import argparse
+import csv
+from os.path import join
+from utils.keys import read_keys
+
+from pathlib import Path
 
 from processor.submission_processor import SubmissionProcessor
 from processor.simple_encoder import SimpleEncoder
 
-# receive this as arguments
-client_id = ""
-client_secret = ""
-password = ""
-username = ""
+parser = argparse.ArgumentParser(description='Gather some posts from [r]eddit')
+parser.add_argument('input_file', metavar='sub', type=str,
+                    help='the file to process')
+parser.add_argument('keys_file', metavar='sub', type=str,
+                    help='route to the file containing the keys for reddit')
+parser.add_argument("-o", "--output_folder", action="store",
+                    help="the file where I should save the results")
 
 def main(args=None):
-    """The main routine."""
-    if args is None:
-        args = sys.argv[1:]
-    # https://www.reddit.com/r/conlangs/comments/5f8rzw/a_serious_emoji_conlang/
-    # https://www.reddit.com/r/emojilang/
 
-    submission_id = "5f8rzw" # <- Emoji intense submission!
+    args = parser.parse_args()
+    input_file = args.input_file
+    output_folder = args.output_folder
+    if output_folder is None:
+        output_folder = "./"
 
-    processor = SubmissionProcessor(client_id, client_secret, password, username)
+    keys = read_keys(args.keys_file)
 
-    sub = processor.process_submission(submission_id, 10)
-    with open("data/"+ submission_id + ".json", 'w', encoding='utf-8') as submission_file:
-        submission_file.write(json.dumps(sub, indent=4, cls=SimpleEncoder))
+    with open(input_file, "r") as submissions_file:
+        reader = csv.reader(submissions_file)
+        next(reader)
+        for row in reader:
+            submission_id = row[0]
+            processor = SubmissionProcessor(keys["client_id"],
+                                            keys["client_secret"],
+                                            keys["password"],
+                                            keys["username"])
+
+            file_ = join(output_folder, submission_id + ".json")
+            if Path(file_).exists():
+                continue
+
+            sub = processor.process_submission(submission_id, 10)
+
+            with open(file_, 'w', encoding='utf-8') as submission_file:
+                submission_file.write(json.dumps(sub, indent=4, cls=SimpleEncoder))
 
 if __name__ == "__main__":
     main()

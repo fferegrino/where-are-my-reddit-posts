@@ -3,7 +3,7 @@ from nltk.sentiment import vader
 sia = vader.SentimentIntensityAnalyzer()
 
 def vader_sentiment(text):
-    return sia.polarity_scores(text)["compound"]
+    return sia.polarity_scores(text)
     """
     https://github.com/cjhutto/vaderSentiment#about-the-scoring
     The compound score is computed by summing the valence scores of each word in the lexicon,

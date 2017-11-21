@@ -2,41 +2,42 @@ import sys
 import argparse
 import csv
 from datetime import datetime
+from utils.keys import read_keys
 
 from crawler.crawler import SubCrawler
 
 parser = argparse.ArgumentParser(description='Gather some posts from [r]eddit')
 parser.add_argument('subreddit', metavar='sub', type=str,
                     help='the subreddit to crawl')
-parser.add_argument('startdate', metavar='start', type=str,
-                    help='starting date yyyy-MM-dd')
-parser.add_argument('enddate', metavar='end', type=str,
+parser.add_argument('from_date', metavar='end', type=str,
                     help='ending date yyyy-MM-dd')
-
-# receive this as arguments
-client_id = ""
-client_secret = ""
-password = ""
-username = ""
-
+parser.add_argument('to_date', metavar='start', type=str,
+                    help='starting date yyyy-MM-dd')
+parser.add_argument('keys_file', metavar='sub', type=str,
+                    help='route to the file containing the keys for reddit')
+parser.add_argument("-o", "--output_file", action="store",
+                    help="the file where I should save the results")
 
 def main(args=None):
-    """The main routine."""
-    if args is None:
-        args = sys.argv[1:]
 
     args = parser.parse_args()
-    start = datetime.strptime(args.startdate, '%Y-%m-%d')
-    end = datetime.strptime(args.enddate, '%Y-%m-%d')
+    to_date = datetime.strptime(args.to_date, '%Y-%m-%d')
+    from_date = datetime.strptime(args.from_date, '%Y-%m-%d')
     subreddit = args.subreddit
 
-    print("Crawling", subreddit, "from", start, "to", end)
-    crawler = SubCrawler(client_id, client_secret, password, username)
-    subbmissions = crawler.crawl(subreddit, start, end)
-    with open(subreddit + '-posts.csv', 'w', encoding='utf-8') as reddit_posts_csv:
+    keys = read_keys(args.keys_file)
+
+    crawler = SubCrawler(keys["client_id"], keys["client_secret"], keys["password"], keys["username"])
+    subbmissions = crawler.crawl(subreddit, to_date, from_date)
+
+    output_file = args.output_file
+    if output_file is None:
+        output_file = subreddit + ".csv"
+    with open(output_file, 'w', encoding='utf-8') as reddit_posts_csv:
         submwriter = csv.writer(reddit_posts_csv, delimiter=',',
                                 quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        submwriter.writerow(["id", "created_utc", "score", "comments", "title", "url", "querystring", "permalink"])
+        submwriter.writerow(["id", "created_utc", "score", "comments", "title", "url",
+                             "querystring", "permalink"])
         for s in subbmissions:
             submwriter.writerow([s["id"],
                                  s["created_utc"],
