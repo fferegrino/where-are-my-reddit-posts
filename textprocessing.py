@@ -85,4 +85,3 @@ for year in years:
                                  row.negative,
                                  row.neutral,
                                  row.compound))
-
