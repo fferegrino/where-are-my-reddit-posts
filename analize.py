@@ -1,92 +1,76 @@
-import sys
-
-import os
-from os import listdir
-import os.path
-from os.path import isfile, join
-
 import json
 import csv
-
-import numpy as np
-
-from analizers.entities.polarity import Polarity
-from analizers.vader import vader_sentiment
-from analizers.sentiwordnet import naive_sentiment, super_naive_sentiment
-
-# args
 import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("input_folder", help="input folder for your text files")
-parser.add_argument("-o", "--output_file", action="store",
-                    help="the folder to store the analyzer results")
-parser.add_argument("-v", "--verbose", help="should i tell you everything im doing?", action="store_true", default=False)
+from analizers.entities.polarity import Polarity
+from os import listdir
+from os.path import isfile, join, isdir
+from utils.dates import find_boundaries
 
+from analizers.vader import vader_sentiment
+
+parser = argparse.ArgumentParser(description='Analyze the sentiments of a bunch of News and their Reddit coments')
+parser.add_argument('input_folder', metavar='sub', type=str,
+                    help='the file folder with the .json files to process')
+parser.add_argument("-o", "--output_file", action="store",
+                    help="the file where I should save the results")
 
 def main(args=None):
 
-    args = parser.parse_args()
-
-    input_data_folder = args.input_folder
+    input_folder = args.input_folder
     output_file = args.output_file
-    if output_file == None:
-        output_file = "sentiment-results.csv"
+    if output_file is None:
+        output_file = "sentiment-analysis.csv"
+    folders = [d for d in listdir(input_folder) if isdir(join(input_folder,d))]
+    rows = []
 
-    if args.verbose:
-        print("Input folder:", input_data_folder)
-        print("Output:", output_file)
-        print("Analyzers to run: vader")
-
-    json_files_to_analyze = [f for f in listdir(input_data_folder) if isfile(join(input_data_folder, f)) and f.endswith(".json")]
-    analiser = vader_sentiment
-
-    with open(output_file, 'w', encoding='utf-8') as results_csv:
-        results_writer = csv.writer(results_csv, delimiter=',',
-                                    quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        results_writer.writerow(
-            ["time", "news_polarity", "comment_polarity_mean", "positive_comment_polarity",
-             "negative_comment_polarity"])
+    for folder in folders:
+        current_folder = join(input_folder,folder)
+        json_files_to_analyze = [f for f in listdir(current_folder) if
+                                 isfile(join(current_folder, f)) and f.endswith(".json")]
 
         for json_file in json_files_to_analyze:
-            if args.verbose:
-                print("Processing", json_file)
-            with open(join(input_data_folder, json_file)) as data_file:
+            current_file = join(current_folder, json_file)
+
+            with open(current_file) as data_file:
                 data = json.load(data_file)
 
-            if data["news_text"] is None:
-                continue
+            sentiments = vader_sentiment(data["news_text"])
 
-            polarity_output = Polarity()
+            news_row = Polarity(1, data["created_utc"],
+                           sentiments["pos"],
+                           sentiments["neg"],
+                           sentiments["neu"],
+                           sentiments["compound"])
 
-            news_polarity = analiser(data["news_text"])
+            news_date = data["created_utc"]
 
-            polarity_output.news_text_polarity = news_polarity
+            lower, upper = find_boundaries(news_date)
 
-            mean_positive = np.nan
-            mean_negative = np.nan
-            comment_polarities_mean = np.nan
+            rows.append(news_row)
+            for i, comment in enumerate(data["comments"]):
+                comment_date =  comment["created_utc"]
+                if lower <= comment_date <= upper:
+                    body = comment["body"]
+                    comment_sentiments = vader_sentiment(body)
 
-            if len(data["comments"]) > 0:
-                for i, comment in enumerate(data["comments"]):
-                    polarity_output.comment_polarities.append([i, analiser(comment["body"])])
+                    comment_row = Polarity(2, comment["created_utc"],
+                                      comment_sentiments["pos"],
+                                      comment_sentiments["neg"],
+                                      comment_sentiments["neu"],
+                                      comment_sentiments["compound"])
 
-                comment_polarities = np.array(polarity_output.comment_polarities)
+                    rows.append(comment_row)
 
-                all_comments = comment_polarities[:, 1]
-                all_positive = all_comments[all_comments > 0]
-                all_negative = all_comments[all_comments < 0]
-
-                comment_polarities_mean = np.mean(all_comments)
-                mean_positive = np.mean(all_positive)
-                mean_negative = np.mean(all_negative)
-
-
-            results_writer.writerow([data["created_utc"],
-                                     polarity_output.news_text_polarity,
-                                     comment_polarities_mean,
-                                     mean_positive,
-                                     mean_negative])
-
+    with open(output_file, 'w', encoding='utf8', newline='') as results_csv:
+        submwriter = csv.writer(results_csv, delimiter=',',
+                                quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        for row in rows:
+            submwriter.writerow((row.type,
+                                 row.timestamp,
+                                 row.positive,
+                                 row.negative,
+                                 row.neutral,
+                                 row.compound))
 
 if __name__ == "__main__":
     main()

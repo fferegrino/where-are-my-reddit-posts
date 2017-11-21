@@ -10,7 +10,7 @@ from pathlib import Path
 from processor.submission_processor import SubmissionProcessor
 from processor.simple_encoder import SimpleEncoder
 
-parser = argparse.ArgumentParser(description='Gather some posts from [r]eddit')
+parser = argparse.ArgumentParser(description='Get the news and the comments from some Reddit submissions')
 parser.add_argument('input_file', metavar='sub', type=str,
                     help='the file to process')
 parser.add_argument('keys_file', metavar='sub', type=str,
