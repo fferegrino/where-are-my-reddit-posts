@@ -10,10 +10,10 @@ from pathlib import Path
 from processor.submission_processor import SubmissionProcessor
 from processor.simple_encoder import SimpleEncoder
 
-parser = argparse.ArgumentParser(description='Get the news and the comments from some Reddit submissions')
-parser.add_argument('input_file', metavar='sub', type=str,
+parser = argparse.ArgumentParser(description='Get the news and the comments from a set of given reddit submissions')
+parser.add_argument('input_file', type=str,
                     help='the file to process')
-parser.add_argument('keys_file', metavar='sub', type=str,
+parser.add_argument('keys_file', type=str,
                     help='route to the file containing the keys for reddit')
 parser.add_argument("-o", "--output_folder", action="store",
                     help="the file where I should save the results")

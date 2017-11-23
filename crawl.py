@@ -6,14 +6,14 @@ from utils.keys import read_keys
 
 from crawler.crawler import SubCrawler
 
-parser = argparse.ArgumentParser(description='Gather some posts from [r]eddit')
-parser.add_argument('subreddit', metavar='sub', type=str,
+parser = argparse.ArgumentParser(description='Crawl posts from a subreddit given a pair of dates')
+parser.add_argument('subreddit', type=str,
                     help='the subreddit to crawl')
-parser.add_argument('from_date', metavar='end', type=str,
-                    help='ending date yyyy-MM-dd')
-parser.add_argument('to_date', metavar='start', type=str,
-                    help='starting date yyyy-MM-dd')
-parser.add_argument('keys_file', metavar='sub', type=str,
+parser.add_argument('from_date', type=str,
+                    help='ending date (yyyy-MM-dd)')
+parser.add_argument('to_date',  type=str,
+                    help='starting date (yyyy-MM-dd)')
+parser.add_argument('keys_file', type=str,
                     help='route to the file containing the keys for reddit')
 parser.add_argument("-o", "--output_file", action="store",
                     help="the file where I should save the results")
