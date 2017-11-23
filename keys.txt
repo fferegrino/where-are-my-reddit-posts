@@ -1,4 +1,4 @@
-client_id:Y2fzRBYFxXJr9g
-client_secret:rG08G1aQz2NJf31kWqQvL6NLiC4
-password:6T3URi2CwQ6aYa8
-username:raticong
+client_id:these
+client_secret:keys 
+password:won't
+username:workanymore
