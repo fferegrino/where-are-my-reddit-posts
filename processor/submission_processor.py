@@ -10,17 +10,23 @@ from processor.reddit_objects.submission import Submission
 from processor.reddit_objects.comment import Comment
 
 
-# https://praw.readthedocs.io/en/latest/tutorials/comments.html
 class SubmissionProcessor:
-    def __init__(self, client_id, client_secret, password, username):
+    def __init__(self, client_id: str, client_secret: str, password: str, username: str):
         self.reddit = praw.Reddit(client_id=client_id,
                                   client_secret=client_secret,
                                   password=password,
                                   username=username,
                                   user_agent="praw_crawler by /u/" + username)
 
-
-    def process_submission(self, submission_id, max_comment_level =  5):
+    def process_submission(self, submission_id: str, max_comment_level: int=5) -> Submission:
+        """
+        Scrape news and subreddit comments
+        :param submission_id:
+        :param max_comment_level:
+            the maximum amount of parents that a comment must have
+            be considered for crawling
+        :return:
+        """
         sub = self.get_from_reddit(submission_id, max_comment_level)
         try:
             article = NewsPlease.from_url(sub.url)
@@ -30,8 +36,13 @@ class SubmissionProcessor:
             sub.actual_title = str(e)
         return sub
 
-
-    def get_from_reddit(self, submission_id, max_comment_level):
+    def get_from_reddit(self, submission_id: str, max_comment_level: int) -> Submission:
+        """
+        Crawl comments from the given submission
+        :param submission_id:
+        :param max_comment_level:
+        :return:
+        """
         if max_comment_level == -1:
             max_comment_level = sys.maxsize
 
@@ -70,4 +81,3 @@ class SubmissionProcessor:
                 comment_queue.append(reply)
                 tab_queue.append(tab + 1)
         return sub
-

@@ -1,11 +1,17 @@
 import praw
 import datetime 
 import time
-import csv
 
 class SubCrawler:
 
-    def __init__(self, client_id, client_secret, password, username):
+    def __init__(self, client_id: str, client_secret: str, password: str, username: str):
+        """
+
+        :param client_id:
+        :param client_secret:
+        :param password:
+        :param username:
+        """
         self.time_delay = datetime.timedelta(days=1)
         self.reddit = praw.Reddit(client_id=client_id,
                                   client_secret=client_secret,
@@ -13,7 +19,24 @@ class SubCrawler:
                                   username=username,
                                   user_agent="praw_crawler by /u/" + username)
 
-    def crawl(self, subreddit_name, start_date, end_date, sleep_time = 5):
+    def crawl(self, subreddit_name: str, start_date: datetime,
+              end_date:datetime, sleep_time: int=5) -> list:
+        """
+        Crawls the specified Subreddit to gather submissions made within the specified dates
+        :param subreddit_name: the name of the subreddit to crawl
+        :param start_date:
+        :param end_date:
+        :param sleep_time: the time to wait between subsequent calls to the reddit endpoint
+        :return: a list of submissions where each submission contains:
+            - Submission identifier
+            - Date created in UT
+            - Score
+            - Number of comments
+            - Title
+            - Submitted URL
+            - The query string of the submitted URL
+            - Permalink to the submission
+        """
         subreddit = self.reddit.subreddit(subreddit_name)
         submissions = []
         while start_date > end_date:

@@ -1,6 +1,7 @@
 class Submission(object):
     
-    def __init__(self, sub_id, title, url, created_utc, ups, downs, score):
+    def __init__(self, sub_id: str, title: str, url: str,
+                 created_utc: int, ups: int, downs: int, score: int):
         self.id = sub_id
         self.title = title
         self.news_text = None

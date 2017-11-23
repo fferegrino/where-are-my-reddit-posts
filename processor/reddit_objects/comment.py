@@ -1,6 +1,8 @@
 class Comment(object):
     
-    def __init__(self, id, in_reply_to, body, comment_level, created_utc, ups, downs, score):
+    def __init__(self, id: str, in_reply_to: str, body: str,
+                 comment_level: int, created_utc: int, ups: int,
+                 downs: int, score:int):
         self.id = id
         self.ups = ups
         self.downs = downs
