@@ -80,6 +80,8 @@ optional arguments:
                         the file where I should save the results
 ```
 
+Example:  
+
 ```
 python analize.py data/crawled
 ```
