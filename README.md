@@ -8,7 +8,7 @@ The scripts developed have dependencies to:
  - `argparse`
  - `nltk`
  - `praw`
- - `news-please`. 
+ - `news-please`   
 
 ## 1. Crawl Reddit
 
