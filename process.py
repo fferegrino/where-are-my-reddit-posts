@@ -1,37 +1,40 @@
-import sys
-import json
 import argparse
 import csv
+import json
+import os
 from os.path import join
-from utils.keys import read_keys
-
 from pathlib import Path
 
-from processor.submission_processor import SubmissionProcessor
 from processor.simple_encoder import SimpleEncoder
+from processor.submission_processor import SubmissionProcessor
 
 parser = argparse.ArgumentParser(description='Get the news and the comments from a set of given reddit submissions')
 parser.add_argument('input_file', type=str,
                     help='the file to process')
-parser.add_argument('keys_file', type=str,
-                    help='route to the file containing the keys for reddit')
 parser.add_argument("-o", "--output_folder", action="store",
                     help="the file where I should save the results")
 
-def main(args=None):
 
+def main(args=None):
     args = parser.parse_args()
     input_file = args.input_file
     output_folder = args.output_folder
     if output_folder is None:
         output_folder = "./"
 
-    keys = read_keys(args.keys_file)
+    keys = {
+        'client_id': os.getenv('CLIENT_ID'),
+        'client_secret': os.getenv('CLIENT_SECRET'),
+        'username': os.getenv('USERNAME'),
+        'password': os.getenv('PASSWORD'),
+    }
 
-    with open(input_file, "r") as submissions_file:
+    with open(input_file, "r", encoding='utf8') as submissions_file:
         reader = csv.reader(submissions_file)
         next(reader)
         for row in reader:
+            if not row:
+                continue
             submission_id = row[0]
             processor = SubmissionProcessor(keys["client_id"],
                                             keys["client_secret"],
@@ -45,7 +48,8 @@ def main(args=None):
             sub = processor.process_submission(submission_id, 10)
 
             with open(file_, 'w', encoding='utf-8') as submission_file:
-                submission_file.write(json.dumps(sub, indent=4, cls=SimpleEncoder))
+                submission_file.write(json.dumps(sub, cls=SimpleEncoder))
+
 
 if __name__ == "__main__":
     main()

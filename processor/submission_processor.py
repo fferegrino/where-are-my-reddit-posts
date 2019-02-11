@@ -1,13 +1,10 @@
-import json
 import sys
 import unicodedata
 
 import praw
 
-from newsplease import NewsPlease
-
-from processor.reddit_objects.submission import Submission
 from processor.reddit_objects.comment import Comment
+from processor.reddit_objects.submission import Submission
 
 
 class SubmissionProcessor:
@@ -18,7 +15,7 @@ class SubmissionProcessor:
                                   username=username,
                                   user_agent="praw_crawler by /u/" + username)
 
-    def process_submission(self, submission_id: str, max_comment_level: int=5) -> Submission:
+    def process_submission(self, submission_id: str, max_comment_level: int = 5) -> Submission:
         """
         Scrape news and subreddit comments
         :param submission_id:
@@ -28,12 +25,6 @@ class SubmissionProcessor:
         :return:
         """
         sub = self.get_from_reddit(submission_id, max_comment_level)
-        try:
-            article = NewsPlease.from_url(sub.url)
-            sub.actual_title = unicodedata.normalize("NFKD", article.title)
-            sub.news_text = unicodedata.normalize("NFKD", article.text)
-        except Exception as e:
-            sub.actual_title = str(e)
         return sub
 
     def get_from_reddit(self, submission_id: str, max_comment_level: int) -> Submission:
