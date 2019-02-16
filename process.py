@@ -4,6 +4,7 @@ import json
 import os
 from os.path import join
 from pathlib import Path
+from prawcore.exceptions import ResponseException
 
 from processor.simple_encoder import SimpleEncoder
 from processor.submission_processor import SubmissionProcessor
@@ -45,10 +46,13 @@ def main(args=None):
             if Path(file_).exists():
                 continue
 
-            sub = processor.process_submission(submission_id, 10)
+            try:
+                sub = processor.process_submission(submission_id, 10)
 
-            with open(file_, 'w', encoding='utf-8') as submission_file:
-                submission_file.write(json.dumps(sub, cls=SimpleEncoder))
+                with open(file_, 'w', encoding='utf-8') as submission_file:
+                    submission_file.write(json.dumps(sub, cls=SimpleEncoder))
+            except ResponseException:
+                pass
 
 
 if __name__ == "__main__":

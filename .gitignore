@@ -437,5 +437,6 @@ paket-files/
 *-posts.csv
 reddit-posts*.csv
 data/*
+crawled_data/*
 # remove stanford tagger packages
 stanford/*
